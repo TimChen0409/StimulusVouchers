@@ -1,0 +1,33 @@
+* {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    font-family: "Noto Sans TC", sans-serif;
+}
+
+i {
+    font-size: 24px;
+    cursor: pointer;
+    color: rgba(30, 64, 255, 0.9);
+    padding: 5px;
+}
+
+#map {
+    height: calc(100vh - 20px);
+}
+
+.sidebar{
+    overflow-y: scroll;
+    height: 100vh;
+}
+
+.show{
+    left: 0;
+    right: 0;
+}
+
+.container-fluid{
+    @media screen and (min-width: 992px){
+        
+    }
+}
