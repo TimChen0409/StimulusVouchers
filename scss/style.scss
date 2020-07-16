@@ -23,6 +23,10 @@
     height: calc(100vh - 20px);
 }
 
+.leaflet-tile-pane {
+    filter: brightness(.8);
+}
+
 .sidebar {
     position: absolute;
     overflow-y: scroll;
