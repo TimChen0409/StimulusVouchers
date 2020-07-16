@@ -4,9 +4,9 @@ const area = document.querySelector('#area');
 const storeList = document.querySelector('#store-list');
 
 
-// 初始化
+// 地圖初始化
 const map = L.map('map', {
-    center: [25.040065, 121.523235], // 台北市區的經緯度（地圖中心）
+    center: [25.040065, 121.523235], // 台北市區（地圖中心）
     zoom: 10, // 地圖預設尺度
     zoomControl: false // 是否顯示預設的縮放按鈕（左上角）
 
@@ -21,21 +21,18 @@ L.tileLayer(osmUrl, {
 
 
 L.control.zoom({
-    position: 'bottomright'
+    position: "bottomright"
 }).addTo(map);
 
 
-L.control
-    .locate({
+L.control.locate({
         showPopup: false,
         position: "bottomright",
         locateOptions: {
             enableHighAccuracy: true //設置高精準度
         },
-        icon:  "fas fa-crosshairs"
-    })
-    .addTo(map)
-    .start();
+        icon: "fas fa-crosshairs"
+}).addTo(map).start();
 
 axios.get("https://3000.gov.tw/hpgapi-openmap/api/getPostData")
     .then((res) => {
@@ -45,25 +42,32 @@ axios.get("https://3000.gov.tw/hpgapi-openmap/api/getPostData")
                     map.setView([position.coords.latitude, position.coords.longitude], 16);
                 }
                 function showError() {
-                    console.log('抱歉，現在無法取的您的地理位置。')
+                    console.log('無法取得你的地理位置。')
                 }
-
                 navigator.geolocation.getCurrentPosition(showPosition, showError);
             } else {
-                console.log('抱歉，您的裝置不支援定位功能。');
+                console.log('你的裝置不支援定位功能。');
             }
         }
 
         getUserLocation();
 
         ///處理地圖
-        let data = res.data;
-        var markers = new L.MarkerClusterGroup().addTo(map);
+        var markers = new L.MarkerClusterGroup({
+            polygonOptions: {
+                color: '#355C7D',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.5
+            }
+
+        }).addTo(map);
+        var data = res.data;
         data.forEach((item) => {
 
-            //判斷標點顏色
+            //設定標點顏色
             const iconColor = (() => {
-                if (item.total != 0) {
+                if (item.total > 0) {
                     return new L.Icon({
                         iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
                         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -74,7 +78,7 @@ axios.get("https://3000.gov.tw/hpgapi-openmap/api/getPostData")
                     });
                 } else {
                     return new L.Icon({
-                        iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                        iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png',
                         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
                         iconSize: [25, 41],
                         iconAnchor: [12, 41],
@@ -84,67 +88,99 @@ axios.get("https://3000.gov.tw/hpgapi-openmap/api/getPostData")
                 }
             })();
 
-            //群組標點.增加圖層(leaflet的標點([座標])).增加popup
+            //群組標點,增加圖層(leaflet的標點([座標])).新增popup
             markers.addLayer(
                 L.marker([item.latitude, item.longitude], {
                     icon: iconColor
                 }).bindPopup(`<div>
-            <h4 class="m-0 mb-2 bold">${item.storeNm}</h4>
-            <p class="m-0 mb-2 h5 text-danger"><span class="bold">三倍券庫存量：</span>${item.total}</p>
-            <a target="_blank" href="https://www.google.com.tw/maps/place/${item.addr}" class="m-0 mb-2 h6 text-dark underLine"><span class="bold">地址：</span>${item.addr}</a>                <p class="m-0 mb-2 h6"><span class="bold">電話：</span>${item.tel}</p>
-            <p class="m-0 mb-2 h6"><span class="bold">營業時間：</span>${item.busiTime}</p>
-            <p class="m-0 mb-2 h6"><span class="bold">數據更新時間：</span>${item.updateTime}</p>
-            </div>`)
+                                <h5 class="my-2">${item.storeNm}</h5>
+                                <p class="my-2 h5 text-danger"><span>三倍券庫存量：</span>${item.total}</p>
+                                <p class="my-2 h6">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                    <a target="_blank" href="https://www.google.com.tw/maps/place/${item.addr}" class="text-info">${item.addr}</a>
+                                </p>                
+                                <p class="my-2 h6"><i class="fas fa-phone-alt"></i>${item.tel}</p>
+                                <p class="my-2 h6"><i class="far fa-clock"></i>${item.busiTime}</p>
+                                <p class="my-2 h6 text-danger"><span>數據更新時間：</span>${item.updateTime}</p>
+                            </div>`
+                )
             );
         });
         map.addLayer(markers);
 
-        //選取地區後的資料顯示
-        cities.addEventListener('change', function () {
+        //選取地區後的資料呈現
+        cities.addEventListener("change", function () {
             let content = '';
             let str = '';
             data.forEach(item => {
                 if (item.hsnNm == cities.value && item.townNm == area.value) {
-                    content = `<li> <div class="card p-2 mb-2">
-                <h4 class="btn btn-primary m-0 mb-2 bold">${item.storeNm}</h4>
-                <p class="m-0 mb-2 h5 text-danger"><span class="bold">三倍券庫存量：</span>${item.total}</p>
-                <a target="_blank" href="https://www.google.com.tw/maps/place/${item.addr}" class="m-0 mb-2 h6 text-dark underLine"><span class="bold">地址：</span>${item.addr}</a>
-                <p class="m-0 mb-2 h6"><span class="bold">電話：</span>${item.tel}</p>
-                <p class="m-0 mb-2 h6"><span class="bold">營業時間：</span>${item.busiTime}</p>
-                </div> </li>`;
+                    content = `<li> 
+                                <div class="card border-info mb-2">
+                                    <div class="card-header">
+                                        <span class="h5">${item.storeNm}</span>
+                                        <i class="fas fa-eye" data-lat="${item.latitude}" data-lng="${item.longitude}"></i>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="my-1 h5 text-danger"><span>三倍券庫存量：</span>${item.total}</p>
+                                        <p class="my-1 h6">
+                                            <i class="fas fa-map-marked-alt"></i>
+                                            <a target="_blank" href="https://www.google.com.tw/maps/place/${item.addr}" class="text-info">${item.addr}</a>
+                                        </p>
+                                        <p class="my-1 h6"><i class="fas fa-phone-alt"></i>${item.tel}</p>
+                                        <div class="d-flex">
+                                            <p class="m-0"><i class="far fa-clock"></i></p>
+                                            <p class="m-0">${item.busiTime}</p>
+                                        </div>
+                                    </div>
+                                </div> 
+                            </li>`;
                     str += content;
                 }
             })
             storeList.innerHTML = str;
         })
-        area.addEventListener('change', function () {
+        area.addEventListener("change", function () {
             let content = '';
             let str = '';
             data.forEach(item => {
                 if (item.hsnNm == cities.value && item.townNm == area.value) {
-                    content = `<li> <div class="card p-1 mb-2">
-                <h4 class="btn btn-primary m-0 mb-2 bold">${item.storeNm}</h4>
-                <p class="m-0 mb-2 h5 text-danger"><span class="bold">三倍券庫存量：</span>${item.total}</p>
-                <a target="_blank" href="https://www.google.com.tw/maps/place/${item.addr}" class="m-0 mb-2 h6 text-dark underLine"><span class="bold">地址：</span>${item.addr}</a>
-                <p class="m-0 mb-2 h6"><span class="bold">電話：</span>${item.tel}</p>
-                <p class="m-0 mb-2 h6"><span class="bold">營業時間：</span>${item.busiTime}</p>
-                </div> </li>`;
+                    content = `<li>
+                                <div class="card border-info mb-2">
+                                    <div class="card-header">
+                                        <span class="h5">${item.storeNm}</span>
+                                        <i class="fas fa-eye" data-lat="${item.latitude}" data-lng="${item.longitude}"></i>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="my-1 h5 text-danger"><span>三倍券庫存量：</span>${item.total}</p>
+                                        <p class="my-1 h6">
+                                            <i class="fas fa-map-marked-alt"></i>
+                                            <a target="_blank" href="https://www.google.com.tw/maps/place/${item.addr}" class="text-info">${item.addr}</a>
+                                        </p>
+                                        <p class="my-1 h6"><i class="fas fa-phone-alt"></i>${item.tel}</p>
+                                        <div class="d-flex">
+                                            <p class="m-0"><i class="far fa-clock"></i></p>
+                                            <p class="m-0">${item.busiTime}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>`;
                     str += content;
                 }
             })
             storeList.innerHTML = str;
         })
-        //點擊郵局標題移動位置
-        storeList.addEventListener('click', function (e) {
-            if (e.target.tagName == 'H4') {
-                // console.log(e.target.innerText);
-                data.forEach(item => {
-                    if (item.storeNm == e.target.innerText) {
-                        map.setView([item.latitude, item.longitude], 18);
-                    }
-                })
-                $('.navBar').toggleClass('show');
+
+        //點擊Icon移動至郵局位置
+        storeList.addEventListener("click", function (e) {
+            if (e.target.tagName !== 'I') {
+                return;
             }
+            let lat = e.target.dataset.lat;
+            let lng = e.target.dataset.lng;
+            map.setView([lat, lng], 18);
+
+            $(".sidebar").toggleClass("show");
+
         }, false)
     })
     .catch(function (error) {
@@ -152,17 +188,17 @@ axios.get("https://3000.gov.tw/hpgapi-openmap/api/getPostData")
     })
 
 
-//製作縣市下拉選單
+//取得縣市下拉選單
 axios.get('./CityCountyData.json')
     .then((res) => {
         let geoData = res.data;
         let countriesOptions = '';
         let cytiesOptions = '';
-        
+
         countriesOptions = `<option value="" selected disabled>選擇縣市</option>`;
         geoData.forEach((item, index) => {
             countriesOptions += `<option value="${item.CityName}">${item.CityName}</option>`;
-            
+
         })
         cities.innerHTML = `<select name="" id="countries">${countriesOptions}</select>`;
 
@@ -175,3 +211,11 @@ axios.get('./CityCountyData.json')
             area.innerHTML = `<select name="" id="countries">${cytiesOptions}</select>`;
         })
     })
+
+$("#hb-btn").on("click", () => {
+    $(".sidebar").toggleClass("show");
+});
+
+$("#close-btn").on("click", () => {
+    $(".sidebar").toggleClass("show");
+});

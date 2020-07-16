@@ -3,13 +3,20 @@
   padding: 0;
   margin: 0;
   list-style: none;
-  font-family: "Noto Sans TC", sans-serif,"微軟正黑體";
+  font-family: "Noto Sans TC", sans-serif, "微軟正黑體";
 }
 
-i {
+.sidebar i {
   font-size: 24px;
   cursor: pointer;
-  color: rgba(30, 64, 255, 0.9);
+  color: #2a81cb;
+  padding: 5px;
+}
+
+.leaflet-popup-content i {
+  font-size: 18px;
+  cursor: pointer;
+  color: #2a81cb;
   padding: 5px;
 }
 
@@ -18,12 +25,38 @@ i {
 }
 
 .sidebar {
+  position: absolute;
   overflow-y: scroll;
+  z-index: 2500;
+  left: -100%;
+  -webkit-transition: 0.5s;
+  transition: 0.5s;
   height: 100vh;
+}
+
+@media screen and (min-width: 992px) {
+  .sidebar {
+    position: initial;
+  }
 }
 
 .show {
   left: 0;
   right: 0;
+}
+
+#hb-btn {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 500;
+  background-color: #fff;
+  cursor: pointer;
+  font-size: 24px;
+  padding: 5px;
+  -webkit-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+          box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+  border-radius: 4px;
+  border: 1px solid #ccc;
 }
 /*# sourceMappingURL=style.css.map */
