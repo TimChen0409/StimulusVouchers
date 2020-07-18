@@ -21,3 +21,6 @@
   * leaflet-locatecontrol(對用戶進行地理位置定位)
   * leaflet-color-markers
   * Leaflet.markercluster(為leaflet群集化資料)
+
+* Others
+  * OpenStreetMap

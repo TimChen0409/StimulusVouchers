@@ -31,7 +31,7 @@
     position: absolute;
     overflow-y: scroll;
     z-index: 2500;
-    left: -100%;
+    left: -100vh;
     transition: 0.5s;
     height: 100vh;
     @media screen and (min-width: 992px) {
